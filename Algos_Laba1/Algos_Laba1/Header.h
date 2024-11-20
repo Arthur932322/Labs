@@ -10,7 +10,7 @@ class TSP {
 public:
     TSP(int numCities, int startCity);
     void generateRandomCosts();               
-    int solve();                              // Решение задачи коммивояжера методом перебора
+    int solve();                              
     void printCostMatrix() const;            
 
 private:
