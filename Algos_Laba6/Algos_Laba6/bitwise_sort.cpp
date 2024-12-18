@@ -2,81 +2,73 @@
 #include <vector>
 #include <chrono>
 #include <random>
+#include <cstdlib>
+#include <ctime>
+#include <fstream>
+#include <string>
 #include "bitwise_sort.h"
 
-std::vector<int> generateArray(int size, int minValue, int maxValue) {
+std::vector<int> loadArrayFromFile(std::ifstream& file) {
+    size_t size;
+    if (!(file >> size)) {
+        throw std::runtime_error("Ошибка чтения размера массива из файла");
+    }
     std::vector<int> arr(size);
-    std::mt19937 rng(std::random_device{}());
-    std::uniform_int_distribution<int> dist(minValue, maxValue);
-    for (int& num : arr) {
-        num = dist(rng);
+    for (size_t i = 0; i < size; ++i) {
+        if (!(file >> arr[i])) {
+            throw std::runtime_error("Ошибка чтения элементов массива из файла");
+        }
     }
     return arr;
 }
 
-double measureSortTime(std::vector<int>& arr) {
-    auto start = std::chrono::high_resolution_clock::now();
-    bitwiseSort(arr);
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed = end - start;
-    return elapsed.count();
+
+double bitwiseSortTime(std::vector<int>& arr, int runs) {
+    double totalTime = 0.0;
+    for (int i = 0; i < runs; ++i) {
+        std::vector<int> tempArr = arr;
+        auto start = std::chrono::high_resolution_clock::now();
+        bitwiseSort(tempArr);
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> duration = end - start;
+        totalTime += duration.count();
+    }
+    return totalTime / runs;
 }
 
 int main() {
     setlocale(LC_ALL, "Russian");
-    std::vector<int> arr = { 170, 45, 75, 90, 802, 24, 2, 66 };
-
-    std::cout << "Исходный массив: ";
-    for (int num : arr) {
-        std::cout << num << " ";
-    }
-    std::cout << std::endl;
-
-    bitwiseSort(arr);
-
-    std::cout << "Отсортированный массив: ";
-    for (int num : arr) {
-        std::cout << num << " ";
-    }
-    std::cout << std::endl;
-
-    if (isSorted(arr)) {
-        std::cout << "Массив отсортирован правильно." << std::endl;
-    }
-    else {
-        std::cout << "Ошибка: массив отсортирован неправильно." << std::endl;
-    }
+    srand(static_cast<unsigned>(time(0)));
 
     std::vector<int> sizes = { 10000, 100000, 1000000 };
     std::vector<std::pair<int, int>> ranges = { {-10, 10}, {-1000, 1000}, {-100000, 100000} };
+    const int runs = 1;
 
-    for (int size : sizes) {
-        for (const auto& range : ranges) {
-            int minValue = range.first;
-            int maxValue = range.second;
+    const std::string fileName = "data.txt";
 
-            std::vector<int> array = generateArray(size, minValue, maxValue);
+   
 
-            if (minValue < 0) {
-                int offset = -minValue;
-                for (int& num : array) {
-                    num += offset;
-                }
-            }
+    std::cout << "\nReading arrays from a file and checking sorting...\n";
+    std::ifstream file(fileName);
+    if (!file) {
+        throw std::runtime_error("Failed to open file for reading");
+    }
 
-            double totalTime = 0.0;
-            const int iterations = 3;
-            for (int i = 0; i < iterations; ++i) {
-                std::vector<int> tempArray = array;
-                totalTime += measureSortTime(tempArray);
-            }
+    try {
+        while (file.peek() != EOF) {
+            std::vector<int> arr = loadArrayFromFile(file);
+            std::cout << "Array size " << arr.size() << " items loaded.\n";
 
-            std::cout << "Размер: " << size
-                << ", Диапазон: [" << range.first << ", " << range.second << "]"
-                << ", Среднее время: " << (totalTime / iterations) << " сек."
-                << std::endl;
+            double averageTime = bitwiseSortTime(arr, runs);
+            std::cout << "Average sorting time: " << averageTime << " seconds\n";
         }
     }
+    catch (...)
+    {
+
+    }
+
+
 
     return 0;
 }

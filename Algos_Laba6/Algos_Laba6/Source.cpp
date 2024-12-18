@@ -1,4 +1,10 @@
 #include "bitwise_sort.h"
+#include <iostream>
+#include <cstdlib>
+#include <ctime>
+#include <chrono>
+#include <fstream>
+#include <string>
 
 void bitwiseSort(std::vector<int>& arr) {
     const int BITS = 32; 
@@ -38,3 +44,6 @@ bool isSorted(const std::vector<int>& arr) {
     }
     return true;
 }
+
+
+
