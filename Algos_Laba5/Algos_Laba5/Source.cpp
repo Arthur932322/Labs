@@ -42,3 +42,4 @@ bool isSorted(const std::vector<int>& arr) {
     }
     return true;
 }
+
